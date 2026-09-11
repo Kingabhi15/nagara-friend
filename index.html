@@ -1,77 +1,145 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NAGARA-AI - Smart Complaint System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NAGARA AI - Trail Demo | ABHISHEK</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-body{font-family:Arial;background:#f0f2f5;margin:0;padding:20px}
-.card{max-width:500px;margin:auto;background:white;padding:25px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,0.1)}
-h1{text-align:center;color:#1a73e8}
-input,select,textarea{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:8px;box-sizing:border-box}
-button{width:100%;padding:14px;background:#1a73e8;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer}
-button:hover{background:#0d62c9}
-.success{display:none;background:#d4edda;color:#155724;padding:12px;border-radius:8px;margin-top:10px;text-align:center}
+body{font-family:Arial;background:#0f172a;color:#fff;padding:15px}
+.card{background:#1e293b;padding:15px;border-radius:12px;margin-bottom:12px}
+input,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none}
+button{background:#22c55e;color:#000;font-weight:bold;cursor:pointer}
+#map{height:300px;border-radius:10px}
+.badge{background:#22c55e;color:#000;padding:4px 10px;border-radius:20px;font-size:12px}
 </style>
 </head>
 <body>
+<h2>🏙️ NAGARA AI - Trail Demo V1</h2>
+<span class="badge">ABHISHEK V9 - Public Trail | Jigani Demo</span>
+
 <div class="card">
-<h1>🏙️ NAGARA-AI</h1>
-<p style="text-align:center">Smart City Complaint System - SIH 2025</p>
+<h3>👤 Citizen Info</h3>
+<input id="name" placeholder="Name: G Ram" value="G Ram">
+<input id="phone" placeholder="Phone: 8123029832" value="8123029832">
+<input id="api" placeholder="Paste your Gemini API Key for real AI (or leave blank for DEMO mode)">
+</div>
 
-<input type="text" id="name" placeholder="Your Name *" required>
-<input type="tel" id="phone" placeholder="Phone Number *" required>
-<select id="category">
-<option value="Road Damage">Road Damage</option>
-<option value="Garbage">Garbage Issue</option>
-<option value="Street Light">Street Light</option>
-<option value="Water Leakage">Water Leakage</option>
-<option value="Drainage">Drainage</option>
-</select>
-<textarea id="desc" placeholder="Describe issue...*" rows="4" required></textarea>
-<input type="text" id="location" placeholder="Location / Area *" required>
+<div class="card">
+<h3>📍 Location</h3>
+<button onclick="getLoc()">📍 GET MY EXACT LOCATION</button>
+<p id="gps">Click button to lock GPS</p>
+<div id="map"></div>
+<a id="gmap" target="_blank">🌐 Open in Google Maps</a>
+</div>
 
-<button onclick="submitComplaint()" id="btn">SUBMIT TO GOOGLE SHEET</button>
-<div id="msg" class="success">✅ COMPLAINT FILED! Check Google Sheet!</div>
+<div class="card">
+<h3>📸 Civic Issue Photo</h3>
+<input type="file" id="photo" accept="image/*">
+<button onclick="analyze()">🧠 ANALYZE (Trail AI)</button>
+<p id="result">Upload photo to analyze</p>
+</div>
+
+<div class="card">
+<h3>📊 Backend</h3>
+<button onclick="saveSheet()">💾 SAVE TO GOOGLE SHEET</button>
+<button onclick="makePDF()">📄 DOWNLOAD PDF REPORT</button>
+<p id="sheetStatus"></p>
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYppLF6X8rYGeYZUzdf4x_inIVNWLnV2pco1wXUE36cnv1p0CZrKUiOhKhDg4uQ4tsNw/exec";
+// === CONFIG - Your script URL (safe to keep public) ===
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeQdk2C2SSUz3Xda_n-5WOAOxgkXow4qFPxmM5OtZ_HglkZ8Kvlv7KUu8Lj-nsIrEOoA/exec";
 
-async function submitComplaint(){
- const btn = document.getElementById('btn');
- const name = document.getElementById('name').value;
- const phone = document.getElementById('phone').value;
- const category = document.getElementById('category').value;
- const desc = document.getElementById('desc').value;
- const location = document.getElementById('location').value;
+let lat=12.8896, lon=77.5999, map, marker;
+let lastData = {};
 
- if(!name || !phone || !desc || !location){ alert("Fill all fields bro!"); return; }
+// Init Map
+map = L.map('map').setView([lat, lon], 15);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+marker = L.marker([lat, lon]).addTo(map);
 
- btn.innerText = "Submitting...";
- btn.disabled = true;
+function getLoc(){
+ if(navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(p=>{
+   lat=p.coords.latitude; lon=p.coords.longitude;
+   document.getElementById('gps').innerHTML = `LOCKED: ${lat.toFixed(6)}, ${lon.toFixed(6)} ✅`;
+   map.setView([lat,lon], 17);
+   marker.setLatLng([lat,lon]);
+   document.getElementById('gmap').href = `https://www.google.com/maps?q=${lat},${lon}`;
+  });
+ } else { alert("GPS not supported"); }
+}
 
- const data = { name, phone, category, description: desc, location, date: new Date().toLocaleString() };
+async function analyze(){
+ const file = document.getElementById('photo').files[0];
+ const apiKey = document.getElementById('api').value.trim();
+ if(!file) return alert("Upload photo first");
+
+ // TRAIL MODE if no key
+ if(!apiKey){
+  document.getElementById('result').innerHTML = `
+  <b>DEMO MODE (No API Key)</b><br>
+  Issue: <b>Drainage Block</b><br>
+  Severity: <b style='color:red'>HIGH 92/100</b><br>
+  Dept: BBMP<br>
+  Kannada: ಶೌಚಾಲಯವು ಅತ್ಯಂತ ಕೊಳಕು ಮತ್ತು ಅಪಾಯಕಾರಿಯಾಗಿದೆ<br>
+  72h Risk: Waterlogging risk<br>
+  <i>Add your Gemini API key on top for real AI</i>
+  `;
+  lastData = {issue:"Drainage Block", severity:"HIGH", priority:92, dept:"BBMP", kannada:"ಶೌಚಾಲಯವು ಅತ್ಯಂತ ಕೊಳಕು", risk:"Waterlogging"};
+  return;
+ }
+
+ // REAL AI if key present
+ document.getElementById('result').innerText = "Analyzing with Gemini...";
+ const base64 = await toBase64(file);
+ const prompt = `You are NAGARA AI civic expert. Detect civic issue from image. Reply JSON only: {issue, severity HIGH/MEDIUM/LOW, priority 0-100, dept BBMP/BWSSB/BESCOM, kannada_message, risk_72h}`;
 
  try{
-   await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-   document.getElementById('msg').style.display = 'block';
-   btn.innerText = "✅ SUBMITTED!";
-   setTimeout(()=>{ 
-     document.getElementById('name').value=''; 
-     document.getElementById('phone').value=''; 
-     document.getElementById('desc').value=''; 
-     document.getElementById('location').value=''; 
-     btn.innerText='SUBMIT TO GOOGLE SHEET'; 
-     btn.disabled=false; 
-     document.getElementById('msg').style.display='none';
-   }, 3000);
- }catch(e){
-   alert("Error! Check Script deployment - set to Anyone");
-   btn.innerText = "SUBMIT TO GOOGLE SHEET";
-   btn.disabled = false;
- }
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{
+   method:"POST", headers:{"Content-Type":"application/json"},
+   body: JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:file.type, data:base64.split(',')[1]}}]}]})
+  });
+  const data = await res.json();
+  const txt = data.candidates[0].content.parts[0].text;
+  document.getElementById('result').innerHTML = `<pre>${txt}</pre>`;
+  lastData = JSON.parse(txt.replace(/```json|```/g,''));
+ }catch(e){ document.getElementById('result').innerText = "Error: "+e.message; }
+}
+
+function toBase64(f){ return new Promise((r,j)=>{ const rd=new FileReader(); rd.onload=()=>r(rd.result); rd.onerror=j; rd.readAsDataURL(f); }); }
+
+function saveSheet(){
+ const name = document.getElementById('name').value;
+ const payload = {
+  name, phone: document.getElementById('phone').value,
+  issue: lastData.issue||"Drainage Block",
+  severity: lastData.severity||"HIGH",
+  priority: lastData.priority||92,
+  dept: lastData.dept||"BBMP",
+  kannada: lastData.kannada||"Demo Kannada",
+  lat, lon,
+  mapLink: `https://www.google.com/maps?q=${lat},${lon}`,
+  timestamp: new Date().toLocaleString()
+ };
+ fetch(SCRIPT_URL,{method:"POST", mode:"no-cors", body:JSON.stringify(payload)});
+ document.getElementById('sheetStatus').innerText = "✅ Saved to Sheet! Check live sheet (Demo data)";
+}
+
+function makePDF(){
+ const {jsPDF} = window.jspdf;
+ const doc = new jsPDF();
+ doc.text(`NAGARA AI - BBMP Report`,10,10);
+ doc.text(`Name: ${document.getElementById('name').value}`,10,20);
+ doc.text(`GPS: ${lat}, ${lon}`,10,30);
+ doc.text(`Issue: ${lastData.issue||"Demo"}`,10,40);
+ doc.text(`Map: https://www.google.com/maps?q=${lat},${lon}`,10,50);
+ doc.save("Nagara_AI_Trail_Report.pdf");
 }
 </script>
+
+<p style="text-align:center;opacity:0.6">© ABHISHEK | Trail Demo - Real Sheet + Mock AI | Main code private for security</p>
 </body>
 </html>
