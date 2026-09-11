@@ -17,13 +17,13 @@ button{background:#22c55e;color:#000;font-weight:bold;cursor:pointer}
 </style>
 </head>
 <body>
-<h2>🏙️ NAGARA AI - Trail Demo V9</h2>
+<h2>🏙️ NAGARA AI - Trail Demo V1</h2>
 <span class="badge">ABHISHEK V9 - Public Trail | Bellari Demo</span>
 
 <div class="card">
 <h3>👤 Citizen Info</h3>
-<input id="name" placeholder="Name: User" value="User">
-<input id="phone" placeholder="Phone: 9999900000" value="8123029832">
+<input id="name" placeholder="Name: User name" value="User name">
+<input id="phone" placeholder="Phone: 9999900000" value="9999900000">
 <input id="api" placeholder="Paste your Gemini API Key for real AI (or leave blank for DEMO mode)">
 </div>
 
@@ -99,7 +99,7 @@ async function analyze(){
  const prompt = `You are NAGARA AI civic expert. Detect civic issue from image. Reply JSON only: {issue, severity HIGH/MEDIUM/LOW, priority 0-100, dept BBMP/BWSSB/BESCOM, kannada_message, risk_72h}`;
 
  try{
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,{
    method:"POST", headers:{"Content-Type":"application/json"},
    body: JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:file.type, data:base64.split(',')[1]}}]}]})
   });
@@ -143,4 +143,4 @@ function makePDF(){
 
 <p style="text-align:center;opacity:0.6">© ABHISHEK | Trail Demo - Real Sheet + Mock AI | Main code private for security</p>
 </body>
-</html> 
+</html>
