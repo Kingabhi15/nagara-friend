@@ -24,7 +24,7 @@ input{width:94%;padding:12px;border-radius:10px;margin:5px 0;background:#020617;
 <button id="knBtn" style="background:#334155;color:#fff;border:1px solid #475569">ಕನ್ನಡ</button>
 </div>
 <h2 style="margin:0">🏙️ NAGARA AI - TRAIL</h2>
-<p style="color:#38bdf8;font-size:11px">ABHISHEK Trail Lab - Public Experiments</p>
+<p style="color:#38bdf8;font-size:11px">ABHISHEK Trail Lab - SHEET CONNECTED ✅</p>
 <div class="card">
 <input id="citizenName" type="text" placeholder="Filed by: Eg. Ramesh">
 <input id="phone" type="text" placeholder="Phone: 98765">
@@ -35,21 +35,65 @@ input{width:94%;padding:12px;border-radius:10px;margin:5px 0;background:#020617;
 <button id="btnAnalyze" style="background:#facc15;color:#000">🧠 ANALYZE with Gemini 3.6 Flash</button>
 <button id="btnDemo" style="background:#4ade80;color:#000">DEMO MODE 92/100 (No Key Needed)</button>
 <p id="stat" style="color:#4ade80;font-size:12px"></p>
+<p id="sheetStatus" style="color:#38bdf8;font-size:11px"></p>
 </div>
 <div class="card"><h3 id="aiHead">AI Result:</h3><div id="out">Trail ready - Click DEMO</div></div>
 <div class="card"><h3 id="ticketHead">Ticket:</h3><div id="ticket">-</div><button id="btnPDF" style="background:#a78bfa;color:#000;margin-top:10px">📄 DOWNLOAD PDF REPORT</button></div>
 <div class="card"><h3 id="whatHead">What-IF:</h3><div id="whatif">-</div></div>
 <div class="card"><h3>📍 Map</h3><iframe id="map" src="https://maps.google.com/maps?q=12.9716,77.5946&z=12&output=embed"></iframe><p id="gpsText" style="font-size:11px">12.9716,77.5946</p></div>
 <script>
-const MY_NAME="ABHISHEK";let b64="";let uLat=12.9716,uLng=77.5946;let lang="en";
+const MY_NAME="ABHISHEK";
+const SCRIPT_URL="https://script.google.com/macros/s/AKfycbzYppLF6X8rYGeYZUzdf4x_iniVNWLnV2pco1wXUE36cnv1p0CZrKUjOhKhDg4U4tsNw/exec";
+let b64="";let uLat=12.9716,uLng=77.5946;let lang="en";
 let T={en:{loc:"📍 GET MY EXACT LOCATION",analyze:"🧠 ANALYZE with Gemini 3.6 Flash",demo:"DEMO MODE 92/100 (No Key Needed)",ai:"AI Result:",ticket:"Ticket:",pdf:"📄 DOWNLOAD PDF REPORT",what:"What-IF:",locked:"✅ LOCKED: ",demoGPS:"✅ DEMO GPS: "},kn:{loc:"📍 ನನ್ನ ನಿಖರ ಸ್ಥಳ ಪಡೆಯಿರಿ",analyze:"🧠 ಜೆಮಿನಿ 3.6 ನೊಂದಿಗೆ ವಿಶ್ಲೇಷಿಸಿ",demo:"ಡೆಮೊ ಮೋಡ್ 92/100",ai:"AI ಫಲಿತಾಂಶ:",ticket:"ಟಿಕೆಟ್:",pdf:"📄 PDF ವರದಿ ಡೌನ್‌ಲೋಡ್",what:"ಏನಾಗಬಹುದು:",locked:"✅ ಲಾಕ್ ಆಗಿದೆ: ",demoGPS:"✅ ಡೆಮೊ GPS: "}};
+function saveToSheet(data){
+  sheetStatus.innerText="⏳ Saving to Google Sheet...";
+  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+ .then(()=>{sheetStatus.innerText="✅ SAVED TO GOOGLE SHEET! Check your sheet!";})
+ .catch(e=>{sheetStatus.innerText="❌ Sheet Error: "+e.message;});
+}
 function setLang(l){lang=l;btnLoc.innerText=T[l].loc;btnAnalyze.innerText=T[l].analyze;btnDemo.innerText=T[l].demo;aiHead.innerText=T[l].ai;ticketHead.innerText=T[l].ticket;btnPDF.innerText=T[l].pdf;whatHead.innerText=T[l].what;if(l=="en"){enBtn.style.background="#facc15";enBtn.style.color="#000";knBtn.style.background="#334155";knBtn.style.color="#fff";}else{knBtn.style.background="#facc15";knBtn.style.color="#000";enBtn.style.background="#334155";enBtn.style.color="#fff";}}
 enBtn.addEventListener('click',()=>setLang("en"));knBtn.addEventListener('click',()=>setLang("kn"));
 photo.addEventListener('change',e=>{let r=new FileReader();r.onload=()=>{b64=r.result.split(',')[1];stat.innerText="✅ Photo ready";};r.readAsDataURL(e.target.files[0]);});
 try{navigator.geolocation.getCurrentPosition(p=>{uLat=p.coords.latitude;uLng=p.coords.longitude;locStatus.innerText=T[lang].locked+uLat.toFixed(6)+","+uLng.toFixed(6);gpsText.innerText=uLat.toFixed(6)+","+uLng.toFixed(6);map.src="https://maps.google.com/maps?q="+uLat+","+uLng+"&z=17&output=embed";});}catch(e){}
 btnLoc.addEventListener('click',()=>{locStatus.innerText="📡 Getting...";navigator.geolocation.getCurrentPosition(p=>{uLat=p.coords.latitude;uLng=p.coords.longitude;locStatus.innerText=T[lang].locked+uLat.toFixed(6)+","+uLng.toFixed(6);gpsText.innerText=uLat.toFixed(6)+","+uLng.toFixed(6);map.src="https://maps.google.com/maps?q="+uLat+","+uLng+"&z=17&output=embed";});});
-btnDemo.addEventListener('click',()=>{let name=citizenName.value.trim()||(lang=="en"?"Citizen":"ನಾಗರಿಕ");let ph=phone.value.trim();map.src="https://maps.google.com/maps?q="+uLat+","+uLng+"&z=17&output=embed";if(lang=="en"){out.innerText='✅ TRAIL DEMO SUCCESS\nHIGH 92/100';ticket.innerHTML='<span class="badge" style="background:#ef4444">HIGH - 92/100</span><br><br><b>Critical Drainage Block - Koramangala</b><br><b>Filed by:</b> '+name+'<br>'+(ph?'<b>Phone:</b> '+ph+'<br>':'')+'Dept: BBMP<br>BBMP will clear in 12h<br><br>📍 '+uLat.toFixed(6)+','+uLng.toFixed(6);whatif.innerHTML='<b>⚠️ 72h:</b> Water enters shops<br><b>🔮 7 Days:</b> Road collapse';}else{out.innerText='✅ ಟ್ರಯಲ್ ಡೆಮೊ ಯಶಸ್ವಿ!\nHIGH 92/100';ticket.innerHTML='<span class="badge" style="background:#ef4444">HIGH - 92/100</span><br><br><b>ಗಂಭೀರ ಚರಂಡಿ ತಡೆ - ಕೋರಮಂಗಲ</b><br><b>ದೂರುದಾರರು:</b> '+name+'<br>'+(ph?'<b>ಫೋನ್:</b> '+ph+'<br>':'')+'ಇಲಾಖೆ: BBMP<br>BBMP 12ಗಂ ನಲ್ಲಿ ತೆರವುಗೊಳಿಸುತ್ತದೆ<br><br>📍 '+uLat.toFixed(6)+','+uLng.toFixed(6);whatif.innerHTML='<b>⚠️ 72ಗಂ:</b> ಅಂಗಡಿಗಳಿಗೆ ನೀರು<br><b>🔮 7 ದಿನ:</b> ರಸ್ತೆ ಕುಸಿತ';}locStatus.innerText=T[lang].demoGPS+uLat.toFixed(6)+","+uLng.toFixed(6);});
-btnAnalyze.addEventListener('click',async()=>{let key=api.value.trim();if(!b64){alert("Choose photo");return;}if(key.length<10){alert("Paste key");return;}let name=citizenName.value.trim()||(lang=="en"?"Citizen":"ನಾಗರಿಕ");let ph=phone.value.trim();out.innerText="🧠 Calling gemini-3.6-flash...";let prompt=lang=="en"?'Analyze civic issue. Return ONLY JSON: {"problem_type":"garbage","kannada":"Kannada","severity":"HIGH","department":"BBMP","priority_score":90,"risk_72h":"risk","what_if_7days":"impact","ticket_title":"Title","citizen_message":"Message"}':'Analyze. Return ONLY JSON: {"problem_type":"garbage","kannada":"ಗಂಭೀರ ಕಸದ ಸಮಸ್ಯೆ","severity":"HIGH","department":"BBMP","priority_score":90,"risk_72h":"72ಗಂ ನಲ್ಲಿ ದುರ್ವಾಸನೆ","what_if_7days":"7 ದಿನದಲ್ಲಿ ಸೋಂಕು","ticket_title":"ಕಸದ ಸಮಸ್ಯೆ","citizen_message":"BBMP 12 ಗಂಟೆಯಲ್ಲಿ ತೆರವುಗೊಳಿಸುತ್ತದೆ"}';try{let res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt},{inlineData:{mimeType:"image/jpeg",data:b64}}]}]})});let j=await res.json();if(j.error){out.innerText="❌ "+j.error.message;return;}let raw=j.candidates[0].content.parts[0].text;out.innerText="✅ SUCCESS ("+lang+"):\n"+raw;let d=JSON.parse(raw.replace(/```json|```/g,'').trim());let col=d.severity=="HIGH"?"#ef4444":d.severity=="MEDIUM"?"#f59e0b":"#22c55e";ticket.innerHTML='<span class="badge" style="background:'+col+'">'+d.severity+' - '+d.priority_score+'/100</span><br><br><b>'+d.ticket_title+'</b><br><b>'+(lang=="en"?'Filed by':'ದೂರುದಾರರು')+':</b> '+name+'<br>'+(ph?'<b>'+(lang=="en"?'Phone':'ಫೋನ್')+':</b> '+ph+'<br>':'')+'Dept/ಇಲಾಖೆ: '+d.department+'<br>Kannada: '+(d.kannada||'')+'<br><br>'+d.citizen_message+'<br><br>📍 '+uLat.toFixed(6)+','+uLng.toFixed(6);whatif.innerHTML='<b>⚠️ 72h:</b> '+d.risk_72h+'<br><br><b>🔮 7 Days:</b> '+d.what_if_7days;}catch(e){out.innerText="❌ Error: "+e.message;}});
+btnDemo.addEventListener('click',()=>{
+  let name=citizenName.value.trim()||(lang=="en"?"Citizen":"ನಾಗರಿಕ");
+  let ph=phone.value.trim();
+  map.src="https://maps.google.com/maps?q="+uLat+","+uLng+"&z=17&output=embed";
+  let issueType="Critical Drainage Block - Koramangala";
+  let severity="HIGH";
+  let department="BBMP";
+  let analysis="DEMO MODE 92/100 - Drainage Block";
+  if(lang=="en"){
+    out.innerText='✅ TRAIL DEMO SUCCESS\nHIGH 92/100';
+    ticket.innerHTML='<span class="badge" style="background:#ef4444">HIGH - 92/100</span><br><br><b>Critical Drainage Block - Koramangala</b><br><b>Filed by:</b> '+name+'<br>'+(ph?'<b>Phone:</b> '+ph+'<br>':'')+'Dept: BBMP<br>BBMP will clear in 12h<br><br>📍 '+uLat.toFixed(6)+','+uLng.toFixed(6);
+    whatif.innerHTML='<b>⚠️ 72h:</b> Water enters shops<br><b>🔮 7 Days:</b> Road collapse';
+  }else{
+    out.innerText='✅ ಟ್ರಯಲ್ ಡೆಮೊ ಯಶಸ್ವಿ!\nHIGH 92/100';
+    ticket.innerHTML='<span class="badge" style="background:#ef4444">HIGH - 92/100</span><br><br><b>ಗಂಭೀರ ಚರಂಡಿ ತಡೆ - ಕೋರಮಂಗಲ</b><br><b>ದೂರುದಾರರು:</b> '+name+'<br>'+(ph?'<b>ಫೋನ್:</b> '+ph+'<br>':'')+'ಇಲಾಖೆ: BBMP<br>BBMP 12ಗಂ ನಲ್ಲಿ ತೆರವುಗೊಳಿಸುತ್ತದೆ<br><br>📍 '+uLat.toFixed(6)+','+uLng.toFixed(6);
+    whatif.innerHTML='<b>⚠️ 72ಗಂ:</b> ಅಂಗಡಿಗಳಿಗೆ ನೀರು<br><b>🔮 7 ದಿನ:</b> ರಸ್ತೆ ಕುಸಿತ';
+  }
+  locStatus.innerText=T[lang].demoGPS+uLat.toFixed(6)+","+uLng.toFixed(6);
+  saveToSheet({name:name,phone:ph,issueType:issueType,severity:severity,department:department,lat:uLat,lng:uLng,analysis:analysis});
+});
+btnAnalyze.addEventListener('click',async()=>{
+  let key=api.value.trim();if(!b64){alert("Choose photo");return;}if(key.length<10){alert("Paste key");return;}
+  let name=citizenName.value.trim()||(lang=="en"?"Citizen":"ನಾಗರಿಕ");
+  let ph=phone.value.trim();
+  out.innerText="🧠 Calling gemini-3.6-flash...";
+  let prompt=lang=="en"?'Analyze civic issue. Return ONLY JSON: {"problem_type":"garbage","kannada":"Kannada","severity":"HIGH","department":"BBMP","priority_score":90,"risk_72h":"risk","what_if_7days":"impact","ticket_title":"Title","citizen_message":"Message"}':'Analyze. Return ONLY JSON: {"problem_type":"garbage","kannada":"ಗಂಭೀರ ಕಸದ ಸಮಸ್ಯೆ","severity":"HIGH","department":"BBMP","priority_score":90,"risk_72h":"72ಗಂ ನಲ್ಲಿ ದುರ್ವಾಸನೆ","what_if_7days":"7 ದಿನದಲ್ಲಿ ಸೋಂಕು","ticket_title":"ಕಸದ ಸಮಸ್ಯೆ","citizen_message":"BBMP 12 ಗಂಟೆಯಲ್ಲಿ ತೆರವುಗೊಳಿಸುತ್ತದೆ"}';
+  try{
+    let res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt},{inlineData:{mimeType:"image/jpeg",data:b64}}]}]})});
+    let j=await res.json();if(j.error){out.innerText="❌ "+j.error.message;return;}
+    let raw=j.candidates[0].content.parts[0].text;out.innerText="✅ SUCCESS ("+lang+"):\n"+raw;
+    let d=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    let col=d.severity=="HIGH"?"#ef4444":d.severity=="MEDIUM"?"#f59e0b":"#22c55e";
+    ticket.innerHTML='<span class="badge" style="background:'+col+'">'+d.severity+' - '+d.priority_score+'/100</span><br><br><b>'+d.ticket_title+'</b><br><b>'+(lang=="en"?'Filed by':'ದೂರುದಾರರು')+':</b> '+name+'<br>'+(ph?'<b>'+(lang=="en"?'Phone':'ಫೋನ್')+':</b> '+ph+'<br>':'')+'Dept/ಇಲಾಖೆ: '+d.department+'<br>Kannada: '+(d.kannada||'')+'<br><br>'+d.citizen_message+'<br><br>📍 '+uLat.toFixed(6)+','+uLng.toFixed(6);
+    whatif.innerHTML='<b>⚠️ 72h:</b> '+d.risk_72h+'<br><br><b>🔮 7 Days:</b> '+d.what_if_7days;
+    saveToSheet({name:name,phone:ph,issueType:d.ticket_title||d.problem_type,severity:d.severity,department:d.department,lat:uLat,lng:uLng,analysis:raw.substring(0,500)});
+  }catch(e){out.innerText="❌ Error: "+e.message;}
+});
 btnPDF.addEventListener('click',async()=>{if(ticket.innerText=="-"){alert("Run DEMO");return;}btnPDF.innerText="⏳ Creating PDF...";try{const{jsPDF}=window.jspdf;let doc=new jsPDF('p','mm','a4');doc.setFont("helvetica","bold");doc.setFontSize(12);doc.text("NAGARA AI TRAIL - "+lang.toUpperCase()+" - "+new Date().toLocaleString(),10,10);doc.setFontSize(9);doc.setFont("helvetica","normal");doc.text("GPS: "+gpsText.innerText,10,15);doc.text("App Author: "+MY_NAME+" | Filed by: "+(citizenName.value||"Citizen")+" | TRAIL LAB",10,20);doc.text("Map: https://maps.google.com/?q="+uLat+","+uLng,10,25);let ticketEl=document.getElementById('ticket');ticketEl.style.background="#ffffff";ticketEl.style.color="#000000";ticketEl.style.padding="12px";let c1=await html2canvas(ticketEl,{scale:3,backgroundColor:"#ffffff"});doc.addImage(c1.toDataURL('image/png'),'PNG',5,30,200,60);ticketEl.style.background="";ticketEl.style.color="";ticketEl.style.padding="";let whatEl=document.getElementById('whatif');whatEl.style.background="#ffffff";whatEl.style.color="#000000";whatEl.style.padding="12px";let c2=await html2canvas(whatEl,{scale:3,backgroundColor:"#ffffff"});doc.addImage(c2.toDataURL('image/png'),'PNG',5,95,200,35);whatEl.style.background="";whatEl.style.color="";whatEl.style.padding="";doc.save("NAGARA_TRAIL_"+MY_NAME+"_"+Date.now()+".pdf");btnPDF.innerText=T[lang].pdf;}catch(e){alert("PDF Error: "+e.message);btnPDF.innerText=T[lang].pdf;}});
 setLang("en");
 </script>
